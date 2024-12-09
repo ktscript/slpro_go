@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"log"
 	"os"
 	"github.com/segmentio/kafka-go"
@@ -9,11 +10,11 @@ import (
 var kafkaBroker = os.Getenv("KAFKA_CONSUMER_URL")
 var kafkaTopic = "input_stream"
 
-func StartKafkaConsumer() {
+func StartKafkaConsumer(resultChannel chan string) {
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBroker},
-		Topic:   kafkaTopic,
-		GroupID: "consumer-group-id", 
+		Brokers: []string{kafkaBroker}, 
+		Topic:   kafkaTopic,            
+		GroupID: "consumer-group-id",   
 	})
 
 	defer reader.Close()
@@ -25,5 +26,7 @@ func StartKafkaConsumer() {
 		}
 
 		log.Printf("Received message: %s", string(msg.Value))
+
+		resultChannel <- string(msg.Value)
 	}
 }
