@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"smslive2/api"           
-	// "smslive/kafka"         
-	// "smslive/memory"        
+	"smslive/kafka"         
+	"smslive/memory"        
 	"smslive2/api/modules"       
 )
 
@@ -24,38 +24,38 @@ func main() {
 	}
 
 	// test channel data
-	task := Task{
-		UUID:     "12345",
-		Platform: "alladin",
-		Query: Query{
-			Proc: "getNumber",
-			Data: map[string]interface{}{
-				"platform":  "alladin",
-				"service":   "37",
-				"country":   "US",
-				"price":     "10",
-				"realPrice": "9",
-				"maxPrice":  "100",
-				"optional":  nil, 
-			},
-		},
-	}
+	// task := Task{
+	// 	UUID:     "12345",
+	// 	Platform: "alladin",
+	// 	Query: Query{
+	// 		Proc: "getNumber",
+	// 		Data: map[string]interface{}{
+	// 			"platform":  "alladin",
+	// 			"service":   "37",
+	// 			"country":   "US",
+	// 			"price":     "10",
+	// 			"realPrice": "9",
+	// 			"maxPrice":  "100",
+	// 			"optional":  nil, 
+	// 		},
+	// 	},
+	// }
 
-	inputChannel <- task   // test task
+	// inputChannel <- task   // test task
 
-	// go memory.MonitorMemoryUsage()
+	go memory.MonitorMemoryUsage()
 
 	go api.StartAPIServer(inputChannel, outputChannel)
 
-	// go kafka.StartKafkaConsumer(inputChannel)
+	go kafka.StartKafkaConsumer(inputChannel)
 
-	// producer, err := kafka.StartKafkaProducer(outputChannel)
-	// if err != nil {
-	// 	log.Fatal("Failed to start Kafka producer: ", err)
-	// }
-	// defer producer.Close()
+	producer, err := kafka.StartKafkaProducer(outputChannel)
+	if err != nil {
+		log.Fatal("Failed to start Kafka producer: ", err)
+	}
+	defer producer.Close()
 
-	modules.RegisterModules(resultChannel)
+	modules.RegisterModules(outputChannel)
 
 	select {}
 }
